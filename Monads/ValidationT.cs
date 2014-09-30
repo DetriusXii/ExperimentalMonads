@@ -1,42 +1,29 @@
-﻿using HodiaInCSharp.Types;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace ExperimentalMonads.Monads {
-    public class ValidationT<I, E>: Monad<ValidationT<I, E>> where I: Monad<I>, new() {
-        
-        public IMonad<ValidationT<I, E>, A> pure<A>(A a) {
-            ValidationMonad<E, A> success = new Success<E, A>(a);
+    public class ValidationT<E> : Transformer<ValidationT<E>> {
 
-            I innerMonad = new I();
-            return new ValidationTMonad<I, E, A>(innerMonad.pure(success));
+        public IMonad<MTM<ValidationT<E>, M>, A> pure<M, A>(A a) where M : Monad<M>, new() {
+            var m = new M();
+            return new ValidationTMonad<M, E, A>(m.pure(Validation<E>.pureS(a)));
         }
 
-        public static IMonad<ValidationT<I, E>, A> pureS<A>(A a) {
-            IMonad<Validation<E>, A> success = new Success<E, A>(a);
-
-            I innerMonad = new I();
-            return new ValidationTMonad<I, E, A>(innerMonad.pure(success));
-        }
-
-        public static IMonad<ValidationT<I, E>, A> pureFailure<A>(E e) {
-            IMonad<Validation<E>, A> failure = new Failure<E, A>(e);
-
-            I innerMonad = new I();
-            return new ValidationTMonad<I, E, A>(innerMonad.pure(failure));
+        public IMonad<MTM<ValidationT<E>, M>, A> lift<M, A>(IMonad<M, A> ma) where M : Monad<M>, new() {
+            return new ValidationTMonad<M, E, A>(ma.map(a => Validation<E>.pureS(a)));
         }
     }
 
     public static class ValidationTExtensions {
         public static IMonad<I, IMonad<Validation<E>, A>>
-            RunValidationT<I, E, A>(this IMonad<ValidationT<I, E>, A> v) where I: Monad<I>, new() {
+            RunValidationT<I, E, A>(this IMonad<MTM<ValidationT<E>, I>, A> v) where I: Monad<I>, new() {
                 return ((ValidationTMonad<I, E, A>)v).runValidationT;
         }
 
         public static IMonad<I, A> GetValueOrDefault<I, E, A>(
-            this IMonad<ValidationT<I, E>, A> v, Func<E, IMonad<I, A>> handleError) where
+            this IMonad<MTM<ValidationT<E>, I>, A> v, Func<E, IMonad<I, A>> handleError) where
             I : Monad<I>, new() { 
             I i = new I();
 
@@ -50,7 +37,7 @@ namespace ExperimentalMonads.Monads {
         }
     }
 
-    public class ValidationTMonad<I, E, A> : IMonad<ValidationT<I, E>, A> where I: Monad<I>, new() {
+    public class ValidationTMonad<I, E, A> : IMonad<MTM<ValidationT<E>, I>, A> where I: Monad<I>, new() {
         public readonly IMonad<I, IMonad<Validation<E>, A>> runValidationT;
         
         public ValidationTMonad(IMonad<I, ValidationMonad<E, A>> runValidationT) {
@@ -64,7 +51,7 @@ namespace ExperimentalMonads.Monads {
             this.runValidationT = runValidationT;
         }
         
-        public IMonad<ValidationT<I, E>, B> pure<B>(B b) {
+        public IMonad<MTM<ValidationT<E>, I>, B> pure<B>(B b) {
             ValidationMonad<E, B> success = new Success<E, B>(b);
             IMonad<I, 
                 ValidationMonad<E, B>> innerMonad = runValidationT.pure(success);
@@ -72,7 +59,7 @@ namespace ExperimentalMonads.Monads {
             return new ValidationTMonad<I, E, B>(innerMonad);
         }
 
-        public IMonad<ValidationT<I, E>, B> map<B>(Func<A, B> f) {
+        public IMonad<MTM<ValidationT<E>, I>, B> map<B>(Func<A, B> f) {
             var newRunValidationT = runValidationT.bind<IMonad<Validation<E>, B>>(
                 (IMonad<Validation<E>, A> validation) => {
                     var success = validation as Success<E, A>;
@@ -93,12 +80,12 @@ namespace ExperimentalMonads.Monads {
             return new ValidationTMonad<I, E, B>(newRunValidationT);
         }
 
-        public IMonad<ValidationT<I, E>, Unit> map(Action<A> action) {
+        public IMonad<MTM<ValidationT<E>, I>, Unit> map(Action<A> action) {
             return this.map(action.convertToFunc());
         }
 
-        public IMonad<ValidationT<I, E>, B> bind<B>(
-            Func<A, IMonad<ValidationT<I, E>, B>> f) {
+        public IMonad<MTM<ValidationT<E>, I>, B> bind<B>(
+            Func<A, IMonad<MTM<ValidationT<E>, I>, B>> f) {
             var newRunValidationT = runValidationT.bind<IMonad<Validation<E>, B>>(
                 (IMonad<Validation<E>, A> validation) => {
                     var success = validation as Success<E, A>;

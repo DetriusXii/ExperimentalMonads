@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Linq.Expressions;
-using HodiaInCSharp.Types;
 
 namespace ExperimentalMonads.Monads {
     /// <summary>

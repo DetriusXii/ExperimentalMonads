@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ExperimentalMonads.Monads;
-using HodiaInCSharp.Types;
 
 namespace HodiaInCSharp.Monads {
     public class ReaderT<I, R> : Monad<ReaderT<I, R>>  where I:Monad<I>, new() {

@@ -3,41 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ExperimentalMonads.Monads;
-using HodiaInCSharp.Types;
 
 namespace ExperimentalMonads.Monads {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="I"></typeparam>
-    public class OptionT<I>: Monad<OptionT<I>> where I: Monad<I>, new() {
-        public IMonad<OptionT<I>, A> pure<A>(A a) {
-            I inner = new I();
-            var innerPure = inner.pure(a);
-            var mappedInner = innerPure.map((A secondA) => 
-                (IMonad<Option, A>)Option.pureS(secondA));
-
-            return new OptionTMonad<I, A>(mappedInner);
+    public class OptionT : Transformer<OptionT> {
+        public IMonad<MTM<OptionT, M>, A> pure<M, A>(A a) where M : Monad<M>, new() {
+            var m = new M();
+            return new OptionTMonad<M, A>(m.pure(Option.pureS(a)));
         }
 
-        public static IMonad<OptionT<I>, A> pureS<A>(A a) {
-            I inner = new I();
-            var innerPure = inner.pure(a);
-            var mappedInner = innerPure.map((A secondA) =>
-                (IMonad<Option, A>)Option.pureS(secondA));
-
-            return new OptionTMonad<I, A>(mappedInner);
+        public IMonad<MTM<OptionT, M>, A> lift<M, A>(IMonad<M, A> ma) where M : Monad<M>, new() {
+            return new OptionTMonad<M, A>(ma.map(a => Option.pureS(a)));
         }
     }
 
-    public class OptionTMonad<I, A> : IMonad<OptionT<I>, A> where I : Monad<I>, new() {
+    public class OptionTMonad<I, A> : IMonad<MTM<OptionT, I>, A> where I : Monad<I>, new() {
         public readonly IMonad<I, IMonad<Option, A>> runMaybeT;
 
         public OptionTMonad(IMonad<I, IMonad<Option, A>> runMaybeT) {
             this.runMaybeT = runMaybeT;
         }
 
-        public IMonad<OptionT<I>, B> pure<B>(B b) {
+        public IMonad<MTM<OptionT, I>, B> pure<B>(B b) {
             I inner = new I();
             var innerPure = inner.pure(b);
             var mappedInner = innerPure.map((B secondB) =>
@@ -46,7 +32,7 @@ namespace ExperimentalMonads.Monads {
             return new OptionTMonad<I, B>(mappedInner);
         }
 
-        public IMonad<OptionT<I>, B> map<B>(Func<A, B> f) {
+        public IMonad<MTM<OptionT, I>, B> map<B>(Func<A, B> f) {
             var newRunMaybeT = this.runMaybeT.map((IMonad<Option, A> optionA) => {
                 var some = optionA as Some<A>;
                 if (some != null) {
@@ -59,11 +45,11 @@ namespace ExperimentalMonads.Monads {
             return new OptionTMonad<I, B>(newRunMaybeT);
         }
 
-        public IMonad<OptionT<I>, Unit> map(Action<A> action) {
+        public IMonad<MTM<OptionT, I>, Unit> map(Action<A> action) {
             return this.map(action.convertToFunc());
         }
 
-        public IMonad<OptionT<I>, B> bind<B>(Func<A, IMonad<OptionT<I>, B>> f) {
+        public IMonad<MTM<OptionT, I>, B> bind<B>(Func<A, IMonad<MTM<OptionT, I>, B>> f) {
             I inner = new I();
 
             var newRunMaybeT = this.runMaybeT.bind((IMonad<Option, A> option) => {
@@ -82,14 +68,14 @@ namespace ExperimentalMonads.Monads {
 
     public static class OptionTExtensions {
         public static IMonad<M, A> GetValueOrDefault<M, A>(
-            this IMonad<OptionT<M>, A> optionT, Func<A> defaultBlock) 
+            this IMonad<MTM<OptionT, M>, A> optionT, Func<A> defaultBlock) 
             where M : Monad<M>, new() {
             var properOptionT = (OptionTMonad<M, A>)optionT;
             return properOptionT.runMaybeT.map(option =>
                 option.getValueOrDefault(defaultBlock));
         }
 
-        public static IMonad<OptionT<M>, A> MakeOptionT<M, A>(this IMonad<M, IMonad<Option, A>> optionM) 
+        public static IMonad<MTM<OptionT, M>, A> MakeOptionT<M, A>(this IMonad<M, IMonad<Option, A>> optionM) 
             where M : Monad<M>, new() {
                 return new OptionTMonad<M, A>(optionM);
         }

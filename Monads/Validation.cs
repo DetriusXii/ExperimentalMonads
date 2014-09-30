@@ -1,5 +1,4 @@
-﻿using HodiaInCSharp.Types;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,7 +25,7 @@ namespace ExperimentalMonads.Monads {
         }
 
         public static OptionMonad<A> convertToOption<E, A>(
-            this IMonad<Validation<E>, A> validation, Func<E, HodiaInCSharp.Types.Unit> handleError) {
+            this IMonad<Validation<E>, A> validation, Func<E, Unit> handleError) {
             if (validation.isSuccess()) {
                 var success = (Success<E, A>)validation;
                 return new Some<A>(success.value);

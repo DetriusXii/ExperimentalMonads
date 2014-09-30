@@ -1,5 +1,4 @@
-﻿using HodiaInCSharp.Types;
-/*
+﻿/*
  * Created by SharpDevelop.
  * User: AJELOVIC
  * Date: 26/Feb/2013

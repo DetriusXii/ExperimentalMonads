@@ -7,8 +7,6 @@
  * To change this template use Tools | Options | Coding | Edit Standard Headers.
  */
 using System;
-using HodiaInCSharp.Tuples;
-using HodiaInCSharp.Types;
 
 namespace ExperimentalMonads.Monads
 {
@@ -23,27 +21,27 @@ namespace ExperimentalMonads.Monads
 		}
 		
 		public IMonad<Writer<W, S>, A> pure<A>(A a) {
-			Tuple2<W, A> tuple = new Tuple2<W, A>((W)this.monoid.empty(), a);
+			var tuple = Tuple.Create((W)this.monoid.empty(), a);
 			
 			return new WriterMonad<W, S, A>(tuple);
 		}
 	}
 	
 	public class WriterMonad<W, S, A>: IMonad<Writer<W, S>, A> where W: IMonoid<S> {
-		public readonly Tuple2<W, A> runWriter;
+		public readonly Tuple<W, A> runWriter;
 		
-		public WriterMonad(Tuple2<W, A> runWriter) {
+		public WriterMonad(Tuple<W, A> runWriter) {
 			this.runWriter = runWriter;
 		}
 		
 		public IMonad<Writer<W, S>, B> pure<B>(B b) {
-			return new WriterMonad<W, S, B>(new Tuple2<W, B>((W)runWriter.a.empty(), b));
+			return new WriterMonad<W, S, B>(new Tuple<W, B>((W)runWriter.Item1.empty(), b));
 		}
 		
 		public IMonad<Writer<W, S>, B> map<B>(Func<A, B> f) {
 
-			return new WriterMonad<W, S, B>(new Tuple2<W, B>(this.runWriter.a,
-			                                                f(this.runWriter.b)));
+			return new WriterMonad<W, S, B>(new Tuple<W, B>(this.runWriter.Item1,
+			                                                f(this.runWriter.Item2)));
 		}
 
         public IMonad<Writer<W, S>, Unit> map(Action<A> action) {
@@ -52,13 +50,13 @@ namespace ExperimentalMonads.Monads
 
 		public IMonad<Writer<W, S>, B> bind<B>(Func<A, IMonad<Writer<W, S>, B>> f) {
 			WriterMonad<W, S, B> evaluationMonad = 
-				(WriterMonad<W, S, B>)f(this.runWriter.b);
+				(WriterMonad<W, S, B>)f(this.runWriter.Item2);
 			
 			W appendedLog = 
-				(W)this.runWriter.a.append(evaluationMonad.runWriter.a);
+				(W)this.runWriter.Item1.append(evaluationMonad.runWriter.Item1);
 			
 			return new WriterMonad<W, S, B>(
-				new Tuple2<W, B>(appendedLog, evaluationMonad.runWriter.b));
+				new Tuple<W, B>(appendedLog, evaluationMonad.runWriter.Item2));
 		}
 	}
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace HodiaInCSharp.Types {
+namespace ExperimentalMonads.Monads {
     public sealed class Unit {
         private static Unit instance = new Unit();
 

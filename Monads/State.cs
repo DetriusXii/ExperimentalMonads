@@ -7,8 +7,6 @@
  * To change this template use Tools | Options | Coding | Edit Standard Headers.
  */
 using System;
-using HodiaInCSharp.Tuples;
-using HodiaInCSharp.Types;
 
 namespace ExperimentalMonads.Monads
 {
@@ -18,25 +16,25 @@ namespace ExperimentalMonads.Monads
 	public class State<S>: Monad<State<S>>
 	{
 		public IMonad<State<S>, A> pure<A>(A a) {
-			return new StateMonad<S, A>((S s) => new Tuple2<S, A>(s, a));
+			return new StateMonad<S, A>((S s) => new Tuple<S, A>(s, a));
 		}
 
         public static IMonad<State<S>, A> pureS<A>(A a) {
-            return new StateMonad<S, A>((S s) => new Tuple2<S, A>(s, a));
+            return new StateMonad<S, A>((S s) => new Tuple<S, A>(s, a));
         }
 	}
 	
 	public class StateMonad<S, A>: IMonad<State<S>, A> {
-		public readonly Func<S, Tuple2<S, A>> runState;
+		public readonly Func<S, Tuple<S, A>> runState;
 		
-		public StateMonad(Func<S, Tuple2<S, A>> runState) {
+		public StateMonad(Func<S, Tuple<S, A>> runState) {
 			this.runState = runState;
 		}
 
         public IMonad<State<S>, S> get() { 
-            Func<S, Tuple2<S, S>> newRunState = (S s) => {
+            Func<S, Tuple<S, S>> newRunState = (S s) => {
                 var tuple = this.runState(s);
-                var newTuple = new Tuple2<S, S>(tuple.a, tuple.a);
+                var newTuple = new Tuple<S, S>(tuple.Item1, tuple.Item1);
 
                 return newTuple;
             };
@@ -45,7 +43,7 @@ namespace ExperimentalMonads.Monads
         }
 
         public IMonad<State<S>, Unit> put(S newS) {
-            return new StateMonad<S, Unit>((S s) => new Tuple2<S, Unit>(newS, Unit.Instance));
+            return new StateMonad<S, Unit>((S s) => new Tuple<S, Unit>(newS, Unit.Instance));
         }
 
         public IMonad<State<S>, Unit> modify(Func<S, S> modifyFunction) { 
@@ -53,14 +51,14 @@ namespace ExperimentalMonads.Monads
         }
 
 		public IMonad<State<S>, B> pure<B>(B b) {
-			return new StateMonad<S, B>((S s) => new Tuple2<S, B>(s, b));
+			return new StateMonad<S, B>((S s) => new Tuple<S, B>(s, b));
 		}
 		
 		public IMonad<State<S>, B> map<B>(Func<A, B> f) {
-			Func<S, Tuple2<S, B>> newRunState = (S s) => {
-				Tuple2<S, A> tuple = this.runState(s);
+			Func<S, Tuple<S, B>> newRunState = (S s) => {
+				Tuple<S, A> tuple = this.runState(s);
 			
-				var newTuple = new Tuple2<S, B>(tuple.a, f(tuple.b));
+				var newTuple = new Tuple<S, B>(tuple.Item1, f(tuple.Item2));
 				
 				return newTuple;
 			};
@@ -74,11 +72,11 @@ namespace ExperimentalMonads.Monads
         }
 		
 		public IMonad<State<S>, B> bind<B>(Func<A, IMonad<State<S>, B>> f) {
-			Func<S, Tuple2<S, B>> newRunState = ((S s) => {
+			Func<S, Tuple<S, B>> newRunState = ((S s) => {
 				var tuple = this.runState(s);
-				var evaluationMonad = (StateMonad<S, B>)f(tuple.b);
+				var evaluationMonad = (StateMonad<S, B>)f(tuple.Item2);
 				
-				return evaluationMonad.runState(tuple.a);
+				return evaluationMonad.runState(tuple.Item1);
 			});
 			
 			return new StateMonad<S, B>(newRunState);
@@ -99,7 +97,7 @@ namespace ExperimentalMonads.Monads
                 return ((StateMonad<S, A>)stateMonad).modify(modifyFunction);
         }
 
-        public static Tuple2<S, A> RunState<S, A>(this IMonad<State<S>, A> stateMonad, S s) {
+        public static Tuple<S, A> RunState<S, A>(this IMonad<State<S>, A> stateMonad, S s) {
             return ((StateMonad<S, A>)stateMonad).runState(s);
         }
     } 

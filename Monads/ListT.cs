@@ -1,5 +1,4 @@
-﻿using HodiaInCSharp.Types;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -46,7 +45,7 @@ namespace ExperimentalMonads.Monads {
             return new ListTMonad<M, B>(this.runListT.map(iList => iList.map(f)));
         }
 
-        public IMonad<MTM<ListT, M>, HodiaInCSharp.Types.Unit> map(Action<A> a) {
+        public IMonad<MTM<ListT, M>, Unit> map(Action<A> a) {
             return this.map(a.convertToFunc());
         }
 
