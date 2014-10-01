@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using ExperimentalMonads.Monads;
 
-namespace HodiaInCSharp.Monads {
+namespace ExperimentalMonads.Monads {
     public class ReaderT<I, R> : Monad<ReaderT<I, R>>  where I:Monad<I>, new() {
         public IMonad<ReaderT<I, R>, A> pure<A>(A a) {
             I innerMonad = new I();

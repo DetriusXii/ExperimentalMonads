@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HodiaInCSharp.Monads {
+namespace ExperimentalMonads.Monads {
     public class Promise: Monad<Promise> {
 
         public IMonad<Promise, A> pure<A>(A a) {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace HodiaInCSharp.Monads.Trampoline {
+namespace ExperimentalMonads.Monads.Trampoline {
     /// <summary>
     ///     A marker to distinguish between continuing or finishing a trampoline
     /// </summary>
