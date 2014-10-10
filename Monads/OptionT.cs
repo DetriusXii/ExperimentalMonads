@@ -68,11 +68,13 @@ namespace ExperimentalMonads.Monads {
 
     public static class OptionTExtensions {
         public static IMonad<M, A> GetValueOrDefault<M, A>(
-            this IMonad<MTM<OptionT, M>, A> optionT, Func<A> defaultBlock) 
+            this IMonad<MTM<OptionT, M>, A> optionT, Func<IMonad<M, A>> defaultBlock) 
             where M : Monad<M>, new() {
+            var m = new M();
+
             var properOptionT = (OptionTMonad<M, A>)optionT;
-            return properOptionT.runMaybeT.map(option =>
-                option.getValueOrDefault(defaultBlock));
+            return properOptionT.runMaybeT.bind(option =>
+                option.map(a => m.pure(a)).getValueOrDefault(defaultBlock));
         }
 
         public static IMonad<MTM<OptionT, M>, A> MakeOptionT<M, A>(this IMonad<M, IMonad<Option, A>> optionM) 

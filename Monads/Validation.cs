@@ -106,6 +106,14 @@ namespace ExperimentalMonads.Monads {
                 throw new UnknownValidationMonadTypeException();
             }
         }
+
+        public static IMonad<M, IMonad<Validation<E>, A>> sequence<M, E, A>(this IMonad<Validation<E>, IMonad<M, A>> validation)
+            where M : Monad<M>, new() {
+            var m = new M();
+
+            return validation.map(innerMonad => innerMonad.map(value => Validation<E>.pureS(value))).
+                getValueOrDefault(errorMessage => m.pure(Validation<E>.failure<A>(errorMessage)));
+        }
     }
 
     public class UnknownValidationMonadTypeException : Exception { 
@@ -127,6 +135,8 @@ namespace ExperimentalMonads.Monads {
                 }
             }
         }
+
+
     }
 
     public class ValidationMonad<E, A> : IMonad<Validation<E>, A> {

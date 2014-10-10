@@ -14,6 +14,12 @@ namespace ExperimentalMonads.Monads {
         public IMonad<MTM<ValidationT<E>, M>, A> lift<M, A>(IMonad<M, A> ma) where M : Monad<M>, new() {
             return new ValidationTMonad<M, E, A>(ma.map(a => Validation<E>.pureS(a)));
         }
+
+        public static IMonad<MTM<ValidationT<E>, M>, A> pureS<M, A>(A a) where M : Monad<M>, new() {
+            var transformer = new ValidationT<E>();
+
+            return transformer.pure<M, A>(a);
+        }
     }
 
     public static class ValidationTExtensions {

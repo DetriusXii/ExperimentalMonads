@@ -13,6 +13,10 @@ namespace ExperimentalMonads.Monads {
             return new Nil<A>();
         }
 
+        public static IMonad<List, A> pureS<A>(A a) {
+            return new ListMonad<A>(a, new Nil<A>());
+        }
+
         public static ListMonad<A> convertFromIList<A>(IList<A> iList) {
             var emptyList = List.empty<A>();
 
@@ -130,21 +134,6 @@ namespace ExperimentalMonads.Monads {
             return this.map(action.convertToFunc());
         }
 
-        public Unit forEach(Action<A> method) {
-            var pos = this;
-
-            while (pos.GetType() != typeof(Nil<A>)) {
-                pos.head.map(headValue => {
-                    method(headValue);
-                    return Unit.Instance;
-                });
-
-                pos = pos.getTail();
-            }
-
-            return Unit.Instance;
-        }
-
         public bool exists(Func<A, bool> predicate) {
             var pos = this;
             var found = false;
@@ -189,10 +178,6 @@ namespace ExperimentalMonads.Monads {
     public static class ListMonadExtensions {
         public static IMonad<List, A> Add<A>(this IMonad<List, A> list, A a) {
             return ((ListMonad<A>)list).add(a);
-        }
-
-        public static Unit ForEach<A>(this IMonad<List, A> list, Action<A> method) {
-            return ((ListMonad<A>)list).forEach(method);
         }
 
         public static IMonad<List, A> Reverse<A>(this IMonad<List, A> list) {

@@ -21,6 +21,12 @@ namespace ExperimentalMonads.Monads {
             return new ListTMonad<M, A>(m.pure(List.empty<A>()));
         }
 
+        public static IMonad<MTM<ListT, M>, A> pureS<M, A>(A a) where M : Monad<M>, new() {
+            var listT = new ListT();
+
+            return listT.pure<M, A>(a);
+        }
+
         public static IMonad<MTM<ListT, M>, A> emptyS<M, A>()
             where M : Monad<M>, new() {
             var m = new M();
@@ -49,7 +55,7 @@ namespace ExperimentalMonads.Monads {
             return this.map(a.convertToFunc());
         }
 
-        public ListTMonad<M, A> add(IMonad<M, A> ma) {
+        public ListTMonad<M, A> addM(IMonad<M, A> ma) {
             var newRunListT = runListT.bind(list => ma.map(a => list.Add(a)));
 
             return new ListTMonad<M, A>(newRunListT);
@@ -72,10 +78,6 @@ namespace ExperimentalMonads.Monads {
 
         public IMonad<M, bool> exists(Func<A, bool> predicate) {
             return runListT.map(list => list.Exists(predicate));
-        }
-
-        public IMonad<M, Unit> forEach(Action<A> method) {
-            return runListT.map(list => list.ForEach(method));
         }
 
         public IMonad<MTM<ListT, M>, B> bind<B>(Func<A, IMonad<MTM<ListT, M>, B>> f) {
@@ -121,9 +123,9 @@ namespace ExperimentalMonads.Monads {
                return ((ListTMonad<M, A>)listTMonad).add(a);
         }
 
-        public static ListTMonad<M, A> Add<M, A>(this IMonad<MTM<ListT, M>, A> listTMonad,
+        public static ListTMonad<M, A> AddM<M, A>(this IMonad<MTM<ListT, M>, A> listTMonad,
             IMonad<M, A> ma) where M : Monad<M>, new() {
-                return ((ListTMonad<M, A>)listTMonad).add(ma);
+                return ((ListTMonad<M, A>)listTMonad).addM(ma);
         }
 
         public static IMonad<M, IMonad<List, A>> RunListT<M, A>(
@@ -131,20 +133,14 @@ namespace ExperimentalMonads.Monads {
             return ((ListTMonad<M, A>)this1).runListT;
         }
 
-        public static ListTMonad<M, A> MakeListT<M, B, A>(
-            this IMonad<M, B> runListT) where M : Monad<M>, new() 
-                                        where B : IMonad<List, A> {
-            return new ListTMonad<M, A>(runListT.map(b => (IMonad<List, A>)b));
+        public static ListTMonad<M, A> MakeListT<M, A>(
+            this IMonad<M, IMonad<List, A>> runListT) where M : Monad<M>, new() {
+            return new ListTMonad<M, A>(runListT);
         }
 
         public static IMonad<M, bool> Exists<M, A>(this IMonad<MTM<ListT, M>, A> listT,
             Func<A, bool> predicate) where M : Monad<M>, new() {
             return ((ListTMonad<M, A>)listT).exists(predicate);
-        }
-
-        public static IMonad<M, Unit> ForEach<M, A>(this IMonad<MTM<ListT, M>, A> listT,
-            Action<A> method) where M : Monad<M>, new() {
-            return ((ListTMonad<M, A>)listT).forEach(method);
         }
     }
 }
