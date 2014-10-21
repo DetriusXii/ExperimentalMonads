@@ -30,6 +30,10 @@ namespace ExperimentalMonads.Monads
             return new IOMonad<A>(() => a);
         }
 
+        public static IMonad<IO, Unit> pureS() {
+            return new IOMonad<Unit>(() => Unit.Instance);
+        }
+
         public static IMonad<IO, A> withDisposable<A, B>(Func<B> openHandle, Func<B, A> during) where B: IDisposable{
             using(var b = openHandle()) {
                 return IO.pureS(during(b));

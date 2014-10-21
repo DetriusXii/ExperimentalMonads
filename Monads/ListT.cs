@@ -55,7 +55,7 @@ namespace ExperimentalMonads.Monads {
             return this.map(a.convertToFunc());
         }
 
-        public ListTMonad<M, A> addM(IMonad<M, A> ma) {
+        public ListTMonad<M, A> add(IMonad<M, A> ma) {
             var newRunListT = runListT.bind(list => ma.map(a => list.Add(a)));
 
             return new ListTMonad<M, A>(newRunListT);
@@ -123,9 +123,9 @@ namespace ExperimentalMonads.Monads {
                return ((ListTMonad<M, A>)listTMonad).add(a);
         }
 
-        public static ListTMonad<M, A> AddM<M, A>(this IMonad<MTM<ListT, M>, A> listTMonad,
+        public static ListTMonad<M, A> Add<M, A>(this IMonad<MTM<ListT, M>, A> listTMonad,
             IMonad<M, A> ma) where M : Monad<M>, new() {
-                return ((ListTMonad<M, A>)listTMonad).addM(ma);
+                return ((ListTMonad<M, A>)listTMonad).add(ma);
         }
 
         public static IMonad<M, IMonad<List, A>> RunListT<M, A>(
