@@ -13,7 +13,7 @@ namespace ExperimentalMonads.Monads {
     /// <typeparam name="A">
     ///     This is the type of the free value that the monad applies
     /// </typeparam>
-    public interface IMonad<T, out A> where T : Monad<T> {
+    public interface IMonad<T, A> where T : Monad<T> {
         /// <summary>
         ///     Wraps a value in a specific monad
         /// </summary>

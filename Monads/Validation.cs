@@ -72,12 +72,12 @@ namespace ExperimentalMonads.Monads {
         }
 
         public static ValidationMonad<E, A> convertToValidationMonad<E, A>(
-            this IMonad<Option, A> option, E failureValue) {
+            this IMonad<Option, A> option, Func<E> failureValue) {
             var some = option as Some<A>;
             if (some != null) {
                 return new Success<E, A>(some.value);
             } else {
-                return new Failure<E, A>(failureValue);
+                return new Failure<E, A>(failureValue());
             }
         }
 
@@ -96,8 +96,10 @@ namespace ExperimentalMonads.Monads {
 
         public static A getValueOrDefault<E, A>(this IMonad<Validation<E>, A> v,
             Func<E, A> f) {
-            var success = v as Success<E, A>;
-            var failure = v as Failure<E, A>;
+            var correctedV = v.map(t => (A)t);
+
+            var success = correctedV as Success<E, A>;
+            var failure = correctedV as Failure<E, A>;
             if (success != null) {
                 return success.value;
             } else if (failure != null) {
@@ -116,7 +118,7 @@ namespace ExperimentalMonads.Monads {
         }
     }
 
-    public class UnknownValidationMonadTypeException : Exception { 
+    public class UnknownValidationMonadTypeException : Exception {
     }
 
     public class ValidationS {

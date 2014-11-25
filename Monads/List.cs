@@ -9,7 +9,7 @@ namespace ExperimentalMonads.Monads {
             return new ListMonad<A>(a, new Nil<A>());
         }
 
-        public static ListMonad<A> empty<A>() {
+        public static IMonad<List, A> empty<A>() {
             return new Nil<A>();
         }
 
@@ -17,12 +17,12 @@ namespace ExperimentalMonads.Monads {
             return new ListMonad<A>(a, new Nil<A>());
         }
 
-        public static ListMonad<A> convertFromIList<A>(IList<A> iList) {
+        public static IMonad<List, A> convertFromIList<A>(IList<A> iList) {
             var emptyList = List.empty<A>();
 
-            foreach (A a in iList) { emptyList = emptyList.add(a); }
+            foreach (A a in iList) { emptyList = emptyList.Add(a); }
 
-            return emptyList.reverse();
+            return emptyList.Reverse();
         }
     }
 
@@ -184,6 +184,10 @@ namespace ExperimentalMonads.Monads {
             return ((ListMonad<A>)list).reverse();
         }
 
+        public static IMonad<List, A> Append<A>(this IMonad<List, A> list, IMonad<List, A> other) {
+            return ((ListMonad<A>)list).append((ListMonad<A>)other);
+        }
+
         public static IMonad<M, IMonad<List, A>> Sequence<M, A>(this IMonad<List, IMonad<M, A>> l)
             where M : Monad<M>, new() {
             var m = new M();
@@ -191,9 +195,19 @@ namespace ExperimentalMonads.Monads {
             return l.FoldLeft(m.pure(List.empty<A>()), (builtMonadList, m2) =>
                 m2.bind(a =>
                     builtMonadList.map(builtList =>
-                        builtList.add(a)))).map(formedListMonad =>
+                        builtList.Add(a)))).map(formedListMonad =>
                             formedListMonad.Reverse());
 
+        }
+
+        public static IMonad<M, IList<A>> Sequence<M, A>(this IList<IMonad<M, A>> l) where M : Monad<M>, new() {
+            var m = new M();
+
+            return l.Aggregate(m.pure<IList<A>>(new List<A>()), (builtMonadList, m2) =>
+                m2.bind(a => builtMonadList.map(builtList => {
+                    builtList.Add(a);
+                    return builtList;
+                })));
         }
     }
 
@@ -266,14 +280,6 @@ namespace ExperimentalMonads.Monads {
 
         public static int Count<A>(this IMonad<List, A> list) {
             return ((ListMonad<A>)list).size;
-        }
-
-        public static ListMonad<A> Append<A>(this IMonad<List, A> l1, 
-            IMonad<List, A> that) {
-            var list1 = (ListMonad<A>)l1;
-            var that1 = (ListMonad<A>)that;
-
-            return list1.append(that1);
         }
 
         public static B FoldLeft<A, B>(this IMonad<List, A> list,

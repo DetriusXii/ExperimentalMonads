@@ -71,7 +71,9 @@ namespace ExperimentalMonads.Monads
         }
 
 		public IMonad<IO, B> map<B>(Func<A, B> f) {
-			return new IOMonad<B>(() => f(this.unsafePerformIO()));
+            var execution = f(this.unsafePerformIO());
+
+			return new IOMonad<B>(() => execution);
 		}
 
         public IMonad<IO, Unit> map(Action<A> a) {

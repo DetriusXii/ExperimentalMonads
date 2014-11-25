@@ -7,11 +7,11 @@ namespace ExperimentalMonads.Monads {
     public class ListT : Transformer<ListT> {
         public IMonad<MTM<ListT, M>, A> pure<M, A>(A a) where M : Monad<M>, new() {
             var m = new M();
-            return new ListTMonad<M, A>(m.pure(List.empty<A>().add(a)));
+            return new ListTMonad<M, A>(m.pure(List.empty<A>().Add(a)));
         }
 
         public IMonad<MTM<ListT, M>, A> lift<M, A>(IMonad<M, A> ma) where M : Monad<M>, new() {
-            throw new NotImplementedException();
+            return ListT.emptyS<M, A>().Add(ma);
         }
 
         public IMonad<MTM<ListT, M>, A> empty<M, A>() 
@@ -104,12 +104,12 @@ namespace ExperimentalMonads.Monads {
         public IMonad<MTM<ListT, M>, B> pure<B>(B b) {
             var m = new M();
 
-            return new ListTMonad<M, B>(m.pure(List.empty<B>().add(b)));
+            return new ListTMonad<M, B>(m.pure(List.empty<B>().Add(b)));
         }
     }
 
     public static class ListTExtensions {
-        public static ListTMonad<M, A> Append<M, A>(
+        public static IMonad<MTM<ListT, M>, A> Append<M, A>(
             this IMonad<MTM<ListT, M>, A> l1,
             IMonad<MTM<ListT, M>, A> that) where M : Monad<M>, new() {
             var list1 = (ListTMonad<M, A>)l1;
@@ -118,12 +118,12 @@ namespace ExperimentalMonads.Monads {
             return list1.append(that1);
         }
 
-        public static ListTMonad<M, A> Add<M, A>(this IMonad<MTM<ListT, M>, A> listTMonad,
+        public static IMonad<MTM<ListT, M>, A> Add<M, A>(this IMonad<MTM<ListT, M>, A> listTMonad,
             A a) where M : Monad<M>, new() {
                return ((ListTMonad<M, A>)listTMonad).add(a);
         }
 
-        public static ListTMonad<M, A> Add<M, A>(this IMonad<MTM<ListT, M>, A> listTMonad,
+        public static IMonad<MTM<ListT, M>, A> Add<M, A>(this IMonad<MTM<ListT, M>, A> listTMonad,
             IMonad<M, A> ma) where M : Monad<M>, new() {
                 return ((ListTMonad<M, A>)listTMonad).add(ma);
         }
@@ -133,7 +133,7 @@ namespace ExperimentalMonads.Monads {
             return ((ListTMonad<M, A>)this1).runListT;
         }
 
-        public static ListTMonad<M, A> MakeListT<M, A>(
+        public static IMonad<MTM<ListT, M>, A> MakeListT<M, A>(
             this IMonad<M, IMonad<List, A>> runListT) where M : Monad<M>, new() {
             return new ListTMonad<M, A>(runListT);
         }
