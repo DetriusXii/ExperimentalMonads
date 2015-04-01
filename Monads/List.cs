@@ -98,7 +98,7 @@ namespace ExperimentalMonads.Monads {
             while (pos.GetType() != typeof(Nil<A>)) {
                 var recastHead = pos.head as Some<A>;
                 if (recastHead != null) {
-                    newList = otherList.add(recastHead.value);
+                    newList = newList.add(recastHead.value);
                 } else {
                     break;
                 }
@@ -130,6 +130,11 @@ namespace ExperimentalMonads.Monads {
             return newList;
         }
 
+        public IMonad<List, A> filter(Func<A, bool> predicate) {
+            return this.foldLeft(List.empty<A>(), (foldedList, element) =>
+                predicate(element) ? foldedList.Add(element) : foldedList).Reverse();
+        }
+
         public IMonad<List, Unit> map(Action<A> action) {
             return this.map(action.convertToFunc());
         }
@@ -153,6 +158,27 @@ namespace ExperimentalMonads.Monads {
             }
 
             return found;
+        }
+
+        public IMonad<Option, A> findFirstMatching(Func<A, bool> predicate) {
+            var pos = this;
+            var foundElement = Option.none<A>();
+
+            while (pos.GetType() != typeof(Nil<A>)) {
+                var recastHead = pos.head as Some<A>;
+                if (recastHead != null) {
+                    if (predicate(recastHead.value)) {
+                        foundElement = recastHead;
+                        break;
+                    }
+                } else {
+                    break;
+                }
+
+                pos = pos.getTail();
+            }
+
+            return foundElement;
         }
 
         public IMonad<List, B> bind<B>(Func<A, IMonad<List, B>> f) {
@@ -182,6 +208,10 @@ namespace ExperimentalMonads.Monads {
 
         public static IMonad<List, A> Reverse<A>(this IMonad<List, A> list) {
             return ((ListMonad<A>)list).reverse();
+        }
+
+        public static IMonad<List, A> Filter<A>(this IMonad<List, A> list, Func<A, bool> predicate) {
+            return ((ListMonad<A>)list).filter(predicate);
         }
 
         public static IMonad<List, A> Append<A>(this IMonad<List, A> list, IMonad<List, A> other) {
@@ -291,6 +321,11 @@ namespace ExperimentalMonads.Monads {
         public static bool Exists<A>(this IMonad<List, A> list, Func<A, bool> predicate) {
             var l = (ListMonad<A>)list;
             return l.exists(predicate);
+        }
+
+        public static IMonad<Option, A> FindFirstMatching<A>(this IMonad<List, A> list, Func<A, bool> predicate) {
+            var l = (ListMonad<A>)list;
+            return l.findFirstMatching(predicate);
         }
     }
 

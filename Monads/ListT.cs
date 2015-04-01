@@ -76,9 +76,19 @@ namespace ExperimentalMonads.Monads {
             return new ListTMonad<M, A>(newRunListT);
         }
 
+        public IMonad<M, int> count() {
+            return this.runListT.map(l => l.Count());
+        }
+
         public IMonad<M, bool> exists(Func<A, bool> predicate) {
             return runListT.map(list => list.Exists(predicate));
         }
+
+        public IMonad<MTM<ListT, M>, A> filter(Func<A, bool> predicate) {
+            return this.runListT.map(innerList => innerList.Filter(predicate)).MakeListT();
+        }
+
+        
 
         public IMonad<MTM<ListT, M>, B> bind<B>(Func<A, IMonad<MTM<ListT, M>, B>> f) {
             var m = new M();
@@ -128,6 +138,10 @@ namespace ExperimentalMonads.Monads {
                 return ((ListTMonad<M, A>)listTMonad).add(ma);
         }
 
+        public static IMonad<M, int> Count<M, A>(this IMonad<MTM<ListT, M>, A> listTMonad) where M : Monad<M>, new() {
+            return ((ListTMonad<M, A>)listTMonad).count();
+        }
+
         public static IMonad<M, IMonad<List, A>> RunListT<M, A>(
             this IMonad<MTM<ListT, M>, A> this1) where M : Monad<M>, new() {
             return ((ListTMonad<M, A>)this1).runListT;
@@ -142,5 +156,10 @@ namespace ExperimentalMonads.Monads {
             Func<A, bool> predicate) where M : Monad<M>, new() {
             return ((ListTMonad<M, A>)listT).exists(predicate);
         }
+
+        public static IMonad<MTM<ListT, M>, A>  Filter<M, A>(this IMonad<MTM<ListT, M>, A> listT, 
+            Func<A, bool> predicate) where M : Monad<M>, new() {
+            return ((ListTMonad<M, A>)listT).filter(predicate);
+        } 
     }
 }

@@ -45,8 +45,6 @@ namespace ExperimentalMonads.Monads
                 return IO.pureS(during.convertToFunc()(b));
             }
         }
-
-        
 	}
 
     public static class IOExtensions {
@@ -83,9 +81,9 @@ namespace ExperimentalMonads.Monads
 		public IMonad<IO, B> bind<B>(Func<A, IMonad<IO, B>> f) {
             var execution = f(this.unsafePerformIO());
             IOMonad<B> evaluatedMonad = (IOMonad<B>)execution.map(b => (B)b);
-
+            B evaluatedValue = evaluatedMonad.unsafePerformIO();
 			
-			return new IOMonad<B>(() => evaluatedMonad.unsafePerformIO());
+			return new IOMonad<B>(() => evaluatedValue);
 		}
 	}
 }
